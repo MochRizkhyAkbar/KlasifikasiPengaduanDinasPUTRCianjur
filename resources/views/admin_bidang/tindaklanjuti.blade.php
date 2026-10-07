@@ -20,7 +20,6 @@
             </div>
         </div>
 
-        <!-- Pastikan tidak ada overflow-hidden di wrapper tabel agar DataTables tidak terblokir -->
         <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
             <table id="tabelTindakLanjut" class="w-full text-left text-sm">
                 <thead class="bg-gray-50 text-gray-700 uppercase font-semibold text-xs">
@@ -39,7 +38,8 @@
                 <tbody class="divide-y divide-gray-100">
                     @foreach($pengaduans as $index =>$item)
                     <tr class="hover:bg-gray-50 transition duration-150">
-                        <td class="px-6 py-4 font-mono text-blue-800">{{ $index + 1 }}</td>
+                        <!-- Kolom No dikosongkan agar diisi otomatis oleh DataTables -->
+                        <td class="px-6 py-4 font-mono text-blue-800"></td>
                         <td class="px-6 py-4 font-mono font-bold text-blue-700">{{ $item->kode_pengaduan }}</td>
                         <td class="px-6 py-4 text-gray-600">{{ $item->created_at ? $item->created_at->format('d/m/Y') : '-' }}</td>
                         <td class="px-6 py-4 font-medium">{{ $item->user ? $item->user->name : ($item->nama_pelapor ?? 'Anonim') }}</td>
@@ -166,15 +166,19 @@
     };
 </script>
 
-<!-- Script Inisialisasi Paksa DataTables -->
+<!-- Script Inisialisasi DataTables dengan Nomor Urut Otomatis & Sorting Tanggal -->
 <script>
     document.addEventListener("DOMContentLoaded", function () {
         if (typeof jQuery !== 'undefined') {
             $(document).ready(function () {
                 if ($('#tabelTindakLanjut').length && !$.fn.DataTable.isDataTable('#tabelTindakLanjut')) {
-                    $('#tabelTindakLanjut').DataTable({
+                    var table = $('#tabelTindakLanjut').DataTable({
                         responsive: true,
                         autoWidth: false,
+                        order: [[2, 'desc']], // Urutkan default berdasarkan Kolom Tanggal (indeks ke-2) terbaru
+                        columnDefs: [
+                            { searchable: false, orderable: false, targets: 0 } // Kolom No tidak bisa di-sort manual
+                        ],
                         language: {
                             search: "Cari:",
                             lengthMenu: "Tampilkan _MENU_ data",
@@ -185,6 +189,13 @@
                             }
                         }
                     });
+
+                    // Fungsi untuk membuat nomor urut otomatis yang selalu rapi (1, 2, 3...)
+                    table.on('order.dt search.dt', function () {
+                        table.column(0, {search:'applied', order:'applied'}).nodes().each(function (cell, i) {
+                            cell.innerHTML = i + 1;
+                        });
+                    }).draw();
                 }
             });
         }
