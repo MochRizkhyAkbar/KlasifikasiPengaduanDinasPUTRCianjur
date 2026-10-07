@@ -1,0 +1,5 @@
+@import 'datatables.net-dt/css/dataTables.dataTables.min.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
